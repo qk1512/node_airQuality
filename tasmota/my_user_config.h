@@ -627,11 +627,12 @@
   //#define USE_SHT20
   //#define USE_WDS
   //#define USE_SOILMOISTURE
-  #define USE_EP_NO2
-  #define USE_ES_SO2
-  #define USE_EP_O3
-  #define USE_EPAM
-  #define USE_EP_CO
+  //#define USE_EP_NO2
+  //#define USE_ES_SO2
+  //#define USE_EP_O3
+  //#define USE_EPAM
+  //#define USE_EP_CO
+  #define USE_ES_SD
 #endif // USE_RS485
 
 // #define USE_RASP_UART
