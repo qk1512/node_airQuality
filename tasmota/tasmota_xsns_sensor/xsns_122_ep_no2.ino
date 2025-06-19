@@ -47,6 +47,7 @@ bool EPNO2isConnected()
     else
     {
         uint16_t check_EPNO2 = (buffer[3] << 8 ) | buffer[4];
+        //AddLog(LOG_LEVEL_INFO, PSTR("Address of NO2: %u"), check_EPNO2);
         if (check_EPNO2 == EPNO2_ADDRESS_ID) return true;
     }
     return false;

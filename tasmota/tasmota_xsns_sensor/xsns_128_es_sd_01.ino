@@ -21,7 +21,7 @@ bool ESSDisConnected()
 {
     if(!RS485.active) return false;
 
-    RS485.Rs485Modbus -> Send(ESSD_ADDRESS_ID, 0x03, (0x01 << 8) | 0x00, 0x01);
+    RS485.Rs485Modbus->Send(ESSD_ADDRESS_ID, 0x03, (0x07 << 8) | 0xD0, 0x01);
 
     delay(200);
 
@@ -66,7 +66,7 @@ void ESSDReadData()
         RS485.lastRequestTime = millis();
     }
 
-    if((RS485.requestSent[ESSD_ADDRESS_ID] == 1) && millis() - RS485.lastRequestTime >= 200)
+    if((RS485.requestSent[ESSD_ADDRESS_ID] == 1) && millis() - RS485.lastRequestTime >= 150)
     {
         if(!RS485.Rs485Modbus -> ReceiveReady()) return;
         uint8_t buffer[8];
@@ -103,6 +103,7 @@ void ESSDShow(bool json)
     }
 #endif
 }
+
 
 bool Xsns128(uint32_t function)
 {

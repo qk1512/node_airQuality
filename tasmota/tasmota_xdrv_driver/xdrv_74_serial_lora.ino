@@ -59,7 +59,7 @@ public:
 StaticJsonDocument<256> Lora_mapping;
 JsonObject Lora_mapping_ojb = Lora_mapping.to<JsonObject>();
 /************************************************************************************* */
-Device_info device_info("Device A",0x12,0x34,23, 106.76940000, 10.90682000,0x12,0x34);
+Device_info device_info("Device A",0x11,0x34,23, 106.76940000, 10.90682000,0x12,0x34);
 /*************************************In cấu hình LORA ******************************* */
 void printParameters(struct Configuration configuration) {
     char logBuf[128];
@@ -178,15 +178,17 @@ void LoraSerialInit(void)
         LoraSerial.LoraSerial = new LoRa_E22(LoraSerial.tx, LoraSerial.rx, mySerial, UART_BPS_RATE_9600, SERIAL_8N1);
         ResponseStatus rs;
         bool check = LoraSerial.LoraSerial->begin();
+        //delay(100);
         if (check)
         {
             //LoraSerial.active = true;
             ResponseStructContainer c = LoraSerial.LoraSerial->getConfiguration();
+            //delay(100);
             Configuration configuration = *(Configuration*) c.data;
             AddLog(LOG_LEVEL_INFO, "%s", c.status.getResponseDescription().c_str());
 
-            // configuration.ADDH = 0x12;
-            // configuration.ADDL = 0x34;
+            configuration.ADDH = 0x00;
+            configuration.ADDL = 0x00;
             configuration.NETID = 0x00;
             configuration.CHAN = 23;
             configuration.SPED.uartBaudRate = UART_BPS_9600;
@@ -194,7 +196,7 @@ void LoraSerialInit(void)
             configuration.SPED.uartParity = MODE_00_8N1;
             configuration.OPTION.subPacketSetting = SPS_240_00;
             configuration.OPTION.RSSIAmbientNoise = RSSI_AMBIENT_NOISE_DISABLED;
-            configuration.OPTION.transmissionPower = POWER_10;
+            configuration.OPTION.transmissionPower = POWER_17;
             configuration.TRANSMISSION_MODE.enableRSSI = RSSI_DISABLED;
             configuration.TRANSMISSION_MODE.fixedTransmission = FT_FIXED_TRANSMISSION;
             configuration.TRANSMISSION_MODE.enableRepeater = REPEATER_DISABLED;
@@ -241,6 +243,8 @@ void LoraSerialInit(void)
 #define D_CMND_SET_CONF_Lora "SetLoraConf"
 #define D_CMND_PRINT_CONF_Lora "PrintLoraConf"
 #define D_CMND_KEY_CONF_Lora "PrintKeyLoraConf"
+//#define D_CMND_SET_TIME_PERIOD "SetTimePeriodLora"
+
 const char kLoraSerialCommands[] PROGMEM = "|"
     D_CMND_SEND_LORA_SERIAL "|"
     D_CMND_SEND_LORA_TELEMETRY"|"
@@ -249,6 +253,7 @@ const char kLoraSerialCommands[] PROGMEM = "|"
     D_CMND_PRINT_CONF_Lora "|"
     D_CMND_SET_CONF_Lora"|"
     D_CMND_KEY_CONF_Lora;
+    //"|"D_CMND_SET_TIME_PERIOD;
 
 void (* const LoraSerialCommand[])(void) PROGMEM = {
     &CmndSendLora,
@@ -258,7 +263,23 @@ void (* const LoraSerialCommand[])(void) PROGMEM = {
     &CmndPrintConfLora,
     &CmndSetConfLora,
     &CmndPrintKeyLoraConf
+    //&CmndSetTimePeriod
 };
+
+/* void CmndSetTimePeriod(void)
+{
+    if ((XdrvMailbox.payload >= 0) && (XdrvMailbox.payload < 3601))
+    {
+        Settings->tele_period_LORA = (1 == XdrvMailbox.payload) ? TELE_PERIOD : XdrvMailbox.payload;
+        if ((Settings->tele_period_LORA > 0) && (Settings->tele_period_LORA < 10))
+        {
+            Settings->tele_period_LORA = 10; // Do not allow periods < 10 seconds
+        }
+    }
+    TasmotaGlobal.tele_period_LORA = (Settings->tele_period_LORA) ? Settings->tele_period_LORA : 3601; // Show teleperiod data also on empty command
+    ResponseCmndNumber(Settings->tele_period_LORA);
+} */
+
 void CmndPrintKeyLoraConf(void) {
     AddLog(LOG_LEVEL_INFO, PSTR("------ USE THESE KEYS FOR SET CONF ------"));
 
@@ -446,9 +467,14 @@ void CmndSendLora(void)
     ResponseCmndDone();
 }
 
+uint32_t last_lora_update = 0;
+uint16_t time_period_lora = 60;
+
 void LoraSerial_COLLECT_DATA()
 {
-
+    //if (millis() - last_lora_update < time_period_lora * 1000) return;
+    if ((uint32_t)(millis() - last_lora_update) < time_period_lora * 1000)return;
+    last_lora_update = millis();
     ResponseClear();
     XsnsCall(FUNC_JSON_APPEND);
     const char *raw = ResponseData();
@@ -497,7 +523,7 @@ void LoraSerial_COLLECT_DATA()
     }
     String final_payload;
     serializeJson(out_doc, final_payload);
-    ResponseStatus rs = LoraSerial.LoraSerial->sendFixedMessage(device_info.addrHigh,device_info.addrLow,device_info.channel,final_payload);
+    ResponseStatus rs = LoraSerial.LoraSerial->sendFixedMessage(device_info.target_addrHigh,device_info.target_addrLow,device_info.channel,final_payload);
     AddLog(LOG_LEVEL_INFO, rs.getResponseDescription().c_str());
     AddLog(LOG_LEVEL_INFO, "Lora Send: %s",final_payload.c_str());
 }
@@ -536,7 +562,7 @@ bool Xdrv74(uint32_t function)
             case FUNC_COMMAND:
                 result = DecodeCommand(kLoraSerialCommands,LoraSerialCommand);
                 break;
-            case FUNC_AFTER_TELEPERIOD:
+            case FUNC_EVERY_SECOND:
                 LoraSerial_COLLECT_DATA();
         }
     }

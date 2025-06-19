@@ -87,7 +87,7 @@
 #ifndef WIFI_AP_PASSPHRASE
 #define WIFI_AP_PASSPHRASE     ""                // AccessPoint passphrase. For WPA2 min 8 char, for open use "" (max 63 char).
 #endif
-#define WIFI_CONFIG_TOOL       WIFI_RETRY        // [WifiConfig] Default tool if Wi-Fi fails to connect (default option: 4 - WIFI_RETRY)
+#define WIFI_CONFIG_TOOL       WIFI_SERIAL        // [WifiConfig] Default tool if Wi-Fi fails to connect (default option: 4 - WIFI_RETRY)
                                                  // (WIFI_RESTART, WIFI_MANAGER, WIFI_RETRY, WIFI_WAIT, WIFI_SERIAL, WIFI_MANAGER_RESET_ONLY)
                                                  // The configuration can be changed after first setup using WifiConfig 0, 2, 4, 5, 6 and 7.
 #define DNS_TIMEOUT            1000              // [DnsTimeout] Number of ms before DNS timeout
@@ -627,12 +627,12 @@
   //#define USE_SHT20
   //#define USE_WDS
   //#define USE_SOILMOISTURE
-  //#define USE_EP_NO2
-  //#define USE_ES_SO2
-  //#define USE_EP_O3
-  //#define USE_EPAM
-  //#define USE_EP_CO
-  #define USE_ES_SD
+  #define USE_EP_NO2
+  #define USE_ES_SO2
+  #define USE_EP_O3
+  #define USE_EPAM
+  #define USE_EP_CO
+  //#define USE_ES_SD
 #endif // USE_RS485
 
 // #define USE_RASP_UART

@@ -291,6 +291,7 @@ struct TasmotaGlobal_t {
   uint16_t seriallog_timer;                 // Timer to disable Seriallog
   uint16_t syslog_timer;                    // Timer to re-enable syslog_level
   uint16_t tele_period;                     // Tele period timer
+  //uint16_t tele_period_LORA;
   int16_t save_data_counter;                // Counter and flag for config save to Flash
   RulesBitfield rules_flag;                 // Rule state flags (16 bits)
 
@@ -449,6 +450,7 @@ void setup(void) {
   TasmotaGlobal.blinks = 201;
   TasmotaGlobal.wifi_state_flag = WIFI_RESTART;
   TasmotaGlobal.tele_period = 9999;
+  //TasmotaGlobal.tele_period_LORA = 9999;
   TasmotaGlobal.active_device = 1;
   TasmotaGlobal.global_state.data = 0xF;  // Init global state (wifi_down, mqtt_down) to solve possible network issues
   TasmotaGlobal.maxlog_level = LOG_LEVEL_DEBUG_MORE;
