@@ -43,14 +43,6 @@ bool SHT20isConnected()
 
     RS485.Rs485Modbus->Send(SHT20_ADDRESS_ID, 0x03, SHT20_ADDRESS_CHECK , 0x01);
 
-    /* uint32_t start_time = millis(); // Store start time
-    uint32_t wait_until = millis() + SHT20_TIMEOUT;
-    while(!TimeReached(wait_until))
-    {
-        delay(1);
-        if(RS485.Rs485Modbus -> ReceiveReady()) break;
-        if(TimeReached(wait_until)) return false;
-    } */
     delay(200);
 
     RS485.Rs485Modbus->ReceiveReady();
@@ -79,7 +71,9 @@ void SHT20Init()
 
     Sht20.valid = SHT20isConnected();
 
-    if(!Sht20.valid) TasmotaGlobal.restart_flag = 2;
+    //if(!Sht20.valid) TasmotaGlobal.restart_flag = 2;
+
+
     if(Sht20.valid) Rs485SetActiveFound(SHT20_ADDRESS_ID, Sht20.name);
 
     AddLog(LOG_LEVEL_INFO, PSTR(Sht20.valid ? "SHT20 is connected" : "SHT20 not detected"));

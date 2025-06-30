@@ -22,23 +22,12 @@ bool EPNO2isConnected()
     if(!RS485.active) return false;
 
     RS485.Rs485Modbus->Send(EPNO2_ADDRESS_ID, EPNO2_FUNCTION_CODE, (0x01 << 8) | 0x00, 0x01);
-    // RS485.Rs485Modbus -> Send(EPNO2_ADDRESS_ID, EPNO2_FUNCTION_CODE, EPNO2_ADDRESS_NO2_CONCENTRATION, 1);
-
-    //uint32_t start_time = millis();
-    //uint32_t wait_until = millis() + EPNO2_TIMEOUT;
-    
-    /* while(!TimeReached(wait_until))
-    {
-        delay(1);
-        if(RS485.Rs485Modbus -> ReceiveReady()) break;
-        if(TimeReached(wait_until)) return false;
-    } */
     delay(200);
 
     RS485.Rs485Modbus->ReceiveReady();
 
     uint8_t buffer[8];
-    uint8_t error = RS485.Rs485Modbus -> ReceiveBuffer(buffer, 8);
+    uint8_t error = RS485.Rs485Modbus -> ReceiveBuffer(buffer, 2);
     if(error)
     {
         AddLog(LOG_LEVEL_INFO, PSTR("EPNO2 has error %d"), error);
@@ -47,7 +36,6 @@ bool EPNO2isConnected()
     else
     {
         uint16_t check_EPNO2 = (buffer[3] << 8 ) | buffer[4];
-        //AddLog(LOG_LEVEL_INFO, PSTR("Address of NO2: %u"), check_EPNO2);
         if (check_EPNO2 == EPNO2_ADDRESS_ID) return true;
     }
     return false;
@@ -57,7 +45,7 @@ void EPNO2Init(void)
 {
     if(!RS485.active) return;
     EPNO2.valid = EPNO2isConnected();
-    if(!EPNO2.valid) TasmotaGlobal.restart_flag = 2;
+    //if(!EPNO2.valid) TasmotaGlobal.restart_flag = 2;
     if(EPNO2.valid) Rs485SetActiveFound(EPNO2_ADDRESS_ID, EPNO2.name);
     AddLog(LOG_LEVEL_INFO, PSTR(EPNO2.valid ? "EPNO2 is connected" : "EPNO2 is not detected"));
 }
@@ -66,8 +54,6 @@ void EPNO2ReadData(void)
 {
     if(!EPNO2.valid) return;
 
-    //if(RS485.sensor_id != EPNO2_ADDRESS_ID) return;
-    
     if(isWaitingResponse(EPNO2_ADDRESS_ID)) return;
 
     if(RS485.requestSent[EPNO2_ADDRESS_ID] == 0 && RS485.lastRequestTime == 0)
@@ -80,7 +66,7 @@ void EPNO2ReadData(void)
     if ((RS485.requestSent[EPNO2_ADDRESS_ID] == 1) && millis() - RS485.lastRequestTime >= 200)
     {
         uint8_t buffer[8];
-        uint8_t error = RS485.Rs485Modbus -> ReceiveBuffer(buffer, 8);
+        uint8_t error = RS485.Rs485Modbus -> ReceiveBuffer(buffer, 2);
 
         if(error)
         {
@@ -90,11 +76,9 @@ void EPNO2ReadData(void)
         {
             uint16_t no2_valueRaw = (buffer[3] << 8) | buffer[4];
             EPNO2.no2_value = no2_valueRaw/100.0;
-            //AddLog(LOG_LEVEL_INFO, PSTR("Value of NO2: %1.f"), EPNO2.no2_value);
         }
         RS485.requestSent[EPNO2_ADDRESS_ID] = 0;
         RS485.lastRequestTime = 0;
-        //advanceSensorID();
     }
 }
 
@@ -124,7 +108,6 @@ bool Xsns122(uint32_t function)
     if(FUNC_INIT == function)
     {
         EPNO2Init();
-        //delay(200);
     }
     else if(EPNO2.valid)
     {
